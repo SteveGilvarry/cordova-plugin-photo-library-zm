@@ -15,8 +15,8 @@ import Photos
 
         if (status == PHAuthorizationStatus.notDetermined) {
             // Access has not been determined.
-            PHPhotoLibrary.requestAuthorization({ (newStatus) in
-            })
+//             PHPhotoLibrary.requestAuthorization({ (newStatus) in
+//             })
         }
 
     }
