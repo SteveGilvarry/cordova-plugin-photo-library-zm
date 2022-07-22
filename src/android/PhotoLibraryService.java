@@ -569,7 +569,7 @@ public class PhotoLibraryService {
   private File getImageFileName(File albumDirectory, String extension) {
     Calendar calendar = Calendar.getInstance();
     String dateStr = calendar.get(Calendar.YEAR) +
-      "-" + calendar.get(Calendar.MONTH + 1) +
+      "-" + (calendar.get(Calendar.MONTH) + 1) +
       "-" + calendar.get(Calendar.DAY_OF_MONTH);
     int i = 1;
     File result;
