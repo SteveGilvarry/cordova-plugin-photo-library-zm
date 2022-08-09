@@ -1,4 +1,4 @@
-Automatic and manual tests for cordova-plugin-photo-library-wkwebview.
+Automatic and manual tests for cordova-plugin-photo-library-zm.
 Tests are written with [cordova-plugin-test-framework](https://github.com/apache/cordova-plugin-test-framework). Automatic tests run with [jasmine](https://jasmine.github.io/).
 
 # Shims

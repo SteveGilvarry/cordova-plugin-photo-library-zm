@@ -1,4 +1,4 @@
-The project is now supported WKWebView but the function getLibrary will not work on iOS
+The project has been forked to support WKWebView and cordova-plugin-file@7.0.0 but the function getLibrary will not work on iOS
 
 That's how it looks and performs in real app:
 
@@ -22,10 +22,10 @@ For example, you can use [PhotoSwipe](https://github.com/dimsemenov/photoswipe) 
 - Handles images [EXIF rotation hell](http://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/).
 - On iOS, written in Swift and not Objective-C.
 
-**Co-maintainer needed**
 
-Currently Android code is pretty stable, iOS has few stability [issues](https://github.com/tien271/cordova-plugin-photo-library-wkwebview/issues).
-**Co-maintainer with iOS/Swift knowlege is needed, please [contact](https://github.com/viskin)**.
+
+Currently Android code is pretty stable, iOS has few stability [issues](https://github.com/SteveGilvarry/cordova-plugin-photo-library-zm/issues).
+
 
 Contributions are welcome.
 Please add only features that can be supported on both Android and iOS.
@@ -33,7 +33,7 @@ Please write tests for your contribution.
 
 # Install
 
-    cordova plugin add cordova-plugin-photo-library-wkwebview --variable PHOTO_LIBRARY_USAGE_DESCRIPTION="To choose photos" --save
+    cordova plugin add cordova-plugin-photo-library-zm --variable PHOTO_LIBRARY_USAGE_DESCRIPTION="To choose photos" --save
 
 # Usage
 

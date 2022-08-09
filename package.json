@@ -1,6 +1,6 @@
 {
-  "name": "cordova-plugin-photo-library-wkwebview",
-  "version": "3.0.3",
+  "name": "cordova-plugin-photo-library-zm",
+  "version": "3.0.4",
   "description": "Plugin that just gets photos from the gallery",
   "main": "index.js",
   "scripts": {
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tien271/cordova-plugin-photo-library-wkwebview.git"
+    "url": "git+https://github.com/SteveGilvarry/cordova-plugin-photo-library-zm.git"
   },
   "author": "Roman Viskin <npm@terikon.com> (http://il.linkedin.com/in/romanviskin)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/tien271/cordova-plugin-photo-library-wkwebview/issues"
+    "url": "https://github.com/SteveGilvarry/cordova-plugin-photo-library-zm/issues"
   },
-  "homepage": "https://github.com/tien271/cordova-plugin-photo-library-wkwebview#readme",
+  "homepage": "https://github.com/SteveGilvarry/cordova-plugin-photo-library-zm#readme",
   "devDependencies": {
     "eslint": "^6.6.0",
     "@types/cordova": "^0.0.34",
