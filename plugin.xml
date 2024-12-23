@@ -2,12 +2,17 @@
 <plugin id="cordova-plugin-photo-library-zm"
 version="3.0.5" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>Photo Library</name>
+    <engines>
+      <engine name="cordova-ios" version=">=6.2.0" />
+      <engine name="cordova-android" version=">=10.0.0" />
+    </engines>
+    <js-module src="www/PhotoLibrary.js" name="PhotoLibrary">
+      <clobbers target="cordova.plugins.photoLibrary" />
+    </js-module>
+    <js-module src="www/async/dist/async.min.js" name="async" />
+    <js-module src="www/async/dist/async.min.map" name="async_map" />
+    <dependency id="cordova-plugin-device" />
     <platform name="android">
-        <js-module src="www/PhotoLibrary.android.js" name="PhotoLibrary">
-            <clobbers target="cordova.plugins.photoLibrary" />
-        </js-module>
-        <js-module src="www/async/dist/async.min.js" name="async" />
-        <js-module src="www/async/dist/async.min.map" name="async_map" />
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="PhotoLibrary" >
                 <param name="android-package" value="com.terikon.cordova.photolibrary.PhotoLibrary"/>
@@ -16,19 +21,18 @@ version="3.0.5" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="
             <allow-navigation href="cdvphotolibrary:*" />
         </config-file>
         <config-file target="AndroidManifest.xml" parent="/*">
-            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-            <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" />
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+			<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+			<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+            <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
         </config-file>
+        <framework src="src/android/build.gradle" custom="true" type="gradleReference"/>
         <source-file src="src/android/PhotoLibrary.java" target-dir="src/com/terikon/cordova/photolibrary" />
         <source-file src="src/android/PhotoLibraryService.java" target-dir="src/com/terikon/cordova/photolibrary" />
         <source-file src="src/android/PhotoLibraryGetLibraryOptions.java" target-dir="src/com/terikon/cordova/photolibrary" />
     </platform>
     <platform name="ios">
-        <js-module src="www/PhotoLibrary.ios.js" name="PhotoLibrary">
-            <clobbers target="cordova.plugins.photoLibrary" />
-        </js-module>
-        <!-- <js-module src="www/async/dist/async.min.js" name="async" />
-        <js-module src="www/async/dist/async.min.map" name="async_map" /> -->
         <config-file target="config.xml" parent="/*">
             <feature name="PhotoLibrary">
                 <param name="ios-package" value="PhotoLibrary" />
@@ -43,14 +47,9 @@ version="3.0.5" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="
         <source-file src="src/ios/PhotoLibraryProtocol.swift" />
         <source-file src="src/ios/PhotoLibraryService.swift" />
         <source-file src="src/ios/PhotoLibraryGetLibraryOptions.swift" />
-        <dependency id="cordova-plugin-add-swift-support" version="^2.0.2"/>
+        <source-file src="src/ios/PhotoLibraryInterceptor.swift" />
     </platform>
     <platform name="browser">
-        <js-module src="www/PhotoLibrary.android.js" name="PhotoLibrary">
-            <clobbers target="cordova.plugins.photoLibrary" />
-        </js-module>
-        <js-module src="www/async/dist/async.min.js" name="async" />
-        <js-module src="www/async/dist/async.min.map" name="async_map" />
         <config-file target="config.xml" parent="/*">
               <feature name="PhotoLibrary">
                   <param name="browser-package" value="PhotoLibrary" />
@@ -60,5 +59,5 @@ version="3.0.5" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="
             <runs />
         </js-module>
     </platform>
-    <dependency id="cordova-plugin-file" version=">=8.0.0"/>
+    <dependency id="cordova-plugin-file" />
 </plugin>

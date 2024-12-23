@@ -1,4 +1,4 @@
-The project has been forked to support WKWebView and cordova-plugin-file@7.0.0 but the function getLibrary will not work on iOS
+The project supports WKWebView.
 
 That's how it looks and performs in real app:
 
@@ -14,7 +14,8 @@ Displays photo library on cordova's HTML page, by URL. Gets thumbnail of arbitra
 
 - Displays photo gallery as web page, and not as boring native screen which you cannot modify. This brings back control over your app to you.
 For example, you can use [PhotoSwipe](https://github.com/dimsemenov/photoswipe) library to present photos.
-- Provides custom schema to access thumbnails: cdvphotolibrary://thumbnail?fileid=xxx&width=128&height=128&quality=0.5 .
+- Provides custom schema to access thumbnails: cdvphotolibrary://thumbnail?fileid=xxx&width=128&height=128&quality=0.5
+- Uses the scheme and host of WkWebView instead of cdvphotolibrary scheme on iOS
 - Works on Android, iOS and browser (cordova serve).
 - Fast - uses browser cache.
 - Can save photos (jpg, png, animated gifs) and videos to specified album on device.
@@ -68,7 +69,7 @@ cordova.plugins.photoLibrary.getLibrary(
 
   },
   function (err) {
-    console.log('Error occured');
+    console.log('Error occurred');
   },
   { // optional options
     thumbnailWidth: 512,
@@ -94,6 +95,28 @@ cordova.plugins.photoLibrary.getAlbums(
   function (err) { }
 );
 ```
+
+## Getting photos from album
+```js
+cordova.plugins.photoLibrary.getPhotosFromAlbum(
+  "AlbumName",
+  function(photos) {
+    console.log(libraryItem.id);          // ID of the photo
+          console.log(libraryItem.photoURL);    // Cross-platform access to photo
+          console.log(libraryItem.thumbnailURL);// Cross-platform access to thumbnail
+          console.log(libraryItem.fileName);
+          console.log(libraryItem.width);
+          console.log(libraryItem.height);
+          console.log(libraryItem.creationDate);
+          console.log(libraryItem.latitude);
+          console.log(libraryItem.longitude);
+  },
+  function(err) {
+    console.log('error occurred')
+  }
+);
+```
+This method is only available on iOS.
 
 ## Saving photos and videos
 
@@ -129,7 +152,7 @@ cordova.plugins.photoLibrary.getLibrary(
 
 requestAuthorization is cross-platform method, that works in following way:
 
-- On android, will ask user to allow access to storage
+- On android, will ask user to allow access to storage or images+videos (android API 33+)
 - On ios, on first call will open permission prompt. If user denies it subsequent calls will open setting page of your app, where user should enable access to Photos.
 
 ```js
@@ -142,7 +165,9 @@ cordova.plugins.photoLibrary.requestAuthorization(
   }, // if options not provided, defaults to {read: true}.
   {
     read: true,
-    write: true
+    write: true, 
+    requestImages: true,
+	requestVideos: true
   }
 );
 ```
