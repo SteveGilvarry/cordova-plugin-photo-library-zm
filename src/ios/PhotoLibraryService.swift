@@ -2,6 +2,7 @@ import Photos
 import UIKit
 import Foundation
 import MobileCoreServices
+import UniformTypeIdentifiers
 
 extension PHAsset {
 
@@ -254,15 +255,45 @@ final class PhotoLibraryService {
 
 
     func mimeTypeForPath(path: String) -> String {
-        let url = NSURL(fileURLWithPath: path)
-        let pathExtension = url.pathExtension
+        let url = URL(fileURLWithPath: path)
+        let ext = url.pathExtension.lowercased()
 
-        if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension! as NSString, nil)?.takeRetainedValue() {
-            if let mimetype = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType)?.takeRetainedValue() {
-                return mimetype as String
+        if !ext.isEmpty {
+            if #available(iOS 14.0, *) {
+                if let type = UTType(filenameExtension: ext),
+                   let mimeType = type.preferredMIMEType {
+                    return mimeType
+                }
+            } else {
+                if #available(iOS 15.0, *) {
+                    // Runtime will never hit this branch because iOS 15+ satisfies the earlier availability check.
+                } else if let uti = UTTypeCreatePreferredIdentifierForTag("public.filename-extension" as CFString, ext as CFString, nil)?.takeRetainedValue(),
+                          let mime = UTTypeCopyPreferredTagWithClass(uti, "public.mime-type" as CFString)?.takeRetainedValue() {
+                    return mime as String
+                }
+            }
+
+            if let fallbackMime = mimeTypes[ext] {
+                return fallbackMime
             }
         }
+
         return "application/octet-stream"
+    }
+
+
+    private func requestImageData(for asset: PHAsset,
+                                  options: PHImageRequestOptions?,
+                                  resultHandler: @escaping (_ data: Data?, _ dataUTI: String?, _ info: [AnyHashable: Any]?) -> Void) {
+        if #available(iOS 13.0, *) {
+            PHImageManager.default().requestImageDataAndOrientation(for: asset, options: options) { data, dataUTI, _, info in
+                resultHandler(data, dataUTI, info)
+            }
+        } else {
+            PHImageManager.default().requestImageData(for: asset, options: options) { data, dataUTI, _, info in
+                resultHandler(data, dataUTI, info)
+            }
+        }
     }
 
 
@@ -285,15 +316,15 @@ final class PhotoLibraryService {
             let asset = obj as! PHAsset
 
             if(mediaType == "image") {
-                PHImageManager.default().requestImageData(for: asset, options: self.imageRequestOptions) {
-                    (imageData: Data?, dataUTI: String?, orientation: UIImage.Orientation, info: [AnyHashable: Any]?) in
+                self.requestImageData(for: asset, options: self.imageRequestOptions) {
+                    (imageData: Data?, _ dataUTI: String?, info: [AnyHashable: Any]?) in
 
                     if(imageData == nil) {
                         completion(nil)
                     }
                     else {
                         if #available(iOS 13.0, *) {
-                            let file_url:NSString = (info!["PHImageFileUTIKey"] as? NSString)!
+                            let file_url:NSString = (info?["PHImageFileUTIKey"] as? NSString)!
                             completion(file_url as String)
                         } else {
                             let file_url:URL = info!["PHImageFileURLKey"] as! URL
@@ -432,8 +463,8 @@ final class PhotoLibraryService {
 
             let asset = obj as! PHAsset
 
-            PHImageManager.default().requestImageData(for: asset, options: self.imageRequestOptions) {
-                (imageData: Data?, dataUTI: String?, orientation: UIImage.Orientation, info: [AnyHashable: Any]?) in
+            self.requestImageData(for: asset, options: self.imageRequestOptions) {
+                (imageData: Data?, _ dataUTI: String?, _ info: [AnyHashable: Any]?) in
 
                 guard let image = imageData != nil ? UIImage(data: imageData!) : nil else {
                     completion(nil)
@@ -464,8 +495,8 @@ final class PhotoLibraryService {
             let mediaType = mimeType.components(separatedBy: "/")[0]
 
             if(mediaType == "image") {
-                PHImageManager.default().requestImageData(for: asset, options: self.imageRequestOptions) {
-                    (imageData: Data?, dataUTI: String?, orientation: UIImage.Orientation, info: [AnyHashable: Any]?) in
+                self.requestImageData(for: asset, options: self.imageRequestOptions) {
+                    (imageData: Data?, _ dataUTI: String?, _ info: [AnyHashable: Any]?) in
 
                     if(imageData == nil) {
                         completion(nil)
@@ -609,20 +640,35 @@ final class PhotoLibraryService {
                         let opts = PHAssetResourceCreationOptions()
                         // Try to infer UTI from data URL mime type
                         if url.lowercased().contains("image/gif") {
-                            opts.uniformTypeIdentifier = kUTTypeGIF as String
+                            if #available(iOS 14.0, *) {
+                                opts.uniformTypeIdentifier = UTType.gif.identifier
+                            } else {
+                                opts.uniformTypeIdentifier = "com.compuserve.gif"
+                            }
                         }
                         request.addResource(with: .photo, data: data, options: opts)
                         placeholder = request.placeholderForCreatedAsset
                     }
-                } else if let fileURL = URL(string: url)
-                            ?? URL(string: url.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed) ?? "")
-                            ?? URL(fileURLWithPath: url) {
-                    // File URL path. Prefer creation from file to keep type.
-                    let creation = PHAssetCreationRequest.creationRequestForAssetFromImage(atFileURL: fileURL)
-                    placeholder = creation?.placeholderForCreatedAsset
                 } else {
-                    // As a fallback, try reading raw data from URL string
-                    if let data = try? self.getDataFromURL(url) {
+                    var maybeURL = URL(string: url)
+                    if maybeURL == nil,
+                       let encoded = url.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed) {
+                        maybeURL = URL(string: encoded)
+                    }
+
+                    if let fileURL = maybeURL {
+                        // File URL path. Prefer creation from file to keep type.
+                        let creation = PHAssetCreationRequest.creationRequestForAssetFromImage(atFileURL: fileURL)
+                        placeholder = creation?.placeholderForCreatedAsset
+                    } else {
+                        // Treat as local file path fallback.
+                        let fileURL = URL(fileURLWithPath: url)
+                        let creation = PHAssetCreationRequest.creationRequestForAssetFromImage(atFileURL: fileURL)
+                        placeholder = creation?.placeholderForCreatedAsset
+                    }
+
+                    if placeholder == nil,
+                       let data = try? self.getDataFromURL(url) {
                         let request = PHAssetCreationRequest.forAsset()
                         request.addResource(with: .photo, data: data, options: nil)
                         placeholder = request.placeholderForCreatedAsset
@@ -817,7 +863,7 @@ final class PhotoLibraryService {
                 completion(photoAlbum, nil)
             }
             else {
-                completion(nil, "\(error)")
+                completion(nil, error?.localizedDescription ?? "Unknown error")
             }
         }
     }
